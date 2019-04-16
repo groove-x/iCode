@@ -7,7 +7,6 @@ include(../common.cmake)
 include_directories(LIBRFAL_INC
   nfc_writer/Inc)
 
-
 add_executable(nfc_writer
   nfc_writer/Src/main.c
   nfc_writer/Src/logger.c)
