@@ -288,7 +288,7 @@ ReturnCode rfalSetAnalogConfig( rfalAnalogConfigId configId )
     /* Search LUT for the specific Configuration ID. */
     while (RFAL_ANALOG_CONFIG_LUT_NOT_FOUND != (numConfigSet = rfalAnalogConfigSearch(configId, &configOffset)))
     {
-        configTbl = (rfalAnalogConfigRegAddrMaskVal *)( (uint32_t)gRfalAnalogConfigMgmt.currentAnalogConfigTbl + (uint32_t)configOffset); 
+        configTbl = (rfalAnalogConfigRegAddrMaskVal *)( (uint64_t)gRfalAnalogConfigMgmt.currentAnalogConfigTbl + (uint64_t)configOffset); 
         /* Increment the offset to the next index to search from. */
         configOffset += (numConfigSet * sizeof(rfalAnalogConfigRegAddrMaskVal)); 
         
