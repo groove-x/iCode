@@ -9,12 +9,13 @@ file (GLOB SOURCE2 "Src/st25r3911/*.c")
 file (GLOB SOURCE3 "../platform/Src/*.c")
 set (SOURCE ${SOURCE1} ${SOURCE2} ${SOURCE3})
 
-find_library(LIBRT_PATH rt)
-
 # Create the shared library
-add_library (rfal_lib SHARED ${SOURCE}) 
+add_library (rfal_lib STATIC ${SOURCE})
 
-target_link_libraries(rfal_lib "${LIBRT_PATH}")
+target_link_libraries(
+  rfal_lib
+  pthread
+  rt)
 
 #set location for library installation
 install(TARGETS rfal_lib DESTINATION .)
