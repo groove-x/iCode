@@ -92,17 +92,6 @@ void st25r3911InitInterrupts( void )
     st25r3911interrupt.prevCallback = NULL;
     st25r3911interrupt.status       = 0;
     st25r3911interrupt.mask         = 0;
-    
-    /* Initialize LEDs if existing and defined */
-    platformLedsInitialize();
-
-#ifdef PLATFORM_LED_RX_PIN
-    platformLedOff( PLATFORM_LED_RX_PORT, PLATFORM_LED_RX_PIN );
-#endif /* PLATFORM_LED_RX_PIN */
-
-#ifdef PLATFORM_LED_FIELD_PIN
-    platformLedOff( PLATFORM_LED_FIELD_PORT, PLATFORM_LED_FIELD_PIN );
-#endif /* PLATFORM_LED_FIELD_PIN */
 }
 
 void st25r3911Isr( void )
@@ -124,24 +113,6 @@ void st25r3911CheckForReceivedInterrupts( void )
    while( platformGpioIsHigh( ST25R391X_INT_PORT, ST25R391X_INT_PIN ) )
    {
        st25r3911ReadMultipleRegisters(ST25R3911_REG_IRQ_MAIN, iregs, sizeof(iregs));
-       
-#ifdef PLATFORM_LED_FIELD_PIN         
-       if (iregs[0] & ST25R3911_IRQ_MASK_TXE)
-       {
-           platformLedOn( PLATFORM_LED_FIELD_PORT, PLATFORM_LED_FIELD_PIN );
-       }
-#endif /* PLATFORM_LED_FIELD_PIN */
-       
-#ifdef PLATFORM_LED_RX_PIN
-       if (iregs[0] & ST25R3911_IRQ_MASK_RXS)
-       {
-           platformLedOn( PLATFORM_LED_RX_PORT, PLATFORM_LED_RX_PIN );
-       }
-       if ((iregs[0] & ST25R3911_IRQ_MASK_RXE) || (iregs[1] & (ST25R3911_IRQ_MASK_NRE >> 8))) /* In rare cases there is rxs but not rxe, then we have nre */
-       {
-           platformLedOff( PLATFORM_LED_RX_PORT, PLATFORM_LED_RX_PIN );
-       }
-#endif /* PLATFORM_LED_RX_PIN */
        
        irqStatus  = (uint32_t)iregs[0];
        irqStatus |= (uint32_t)iregs[1]<<8;

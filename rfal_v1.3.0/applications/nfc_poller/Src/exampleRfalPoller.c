@@ -266,16 +266,7 @@ extern void exampleRfalPollerRun( void )
 
 	    rfalWorker();                                                                 /* Execute RFAL process */
 
-	    /* switchoff all the leds at start */
-	    //platformLedOff(LED_NFCA_PORT, LED_NFCA_PIN);
-	    //platformLedOff(LED_NFCB_PORT, LED_NFCB_PIN);
-	    //platformLedOff(LED_NFCF_PORT, LED_NFCF_PIN);
-	    //platformLedOff(LED_NFCV_PORT, LED_NFCV_PIN);    
-	    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);                        /* Added by MB to switch LED off */
-
-        platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
-		platformDelay(20);
+      platformDelay(20);
 
 	    switch( gState )
 	    {

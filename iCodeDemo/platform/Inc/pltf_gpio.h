@@ -50,7 +50,7 @@
 /* GPIO pin no. 22 is used as interrupt line to receive interrupts from ST25R3911X.
  */ 
 
-#define PLTF_GPIO_INTR_PIN	22
+#define PLTF_GPIO_INTR_PIN	504
 
 /*
  ******************************************************************************

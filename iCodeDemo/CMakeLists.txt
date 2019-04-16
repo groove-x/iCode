@@ -7,6 +7,12 @@ cmake_minimum_required (VERSION 2.8.11)
 
 project (rfal)
 
+message("build for ${ARCH}")
+if (${ARCH} MATCHES "arm64")
+  SET(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+  SET(CMAKE_C_FLAGS_RELEASE "-O3")
+endif()
+
 add_compile_options(-std=gnu99 -g)
 
 add_subdirectory (rfal)

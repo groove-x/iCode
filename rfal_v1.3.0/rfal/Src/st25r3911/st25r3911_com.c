@@ -71,27 +71,6 @@ static uint8_t comBuf[ST25R3911_BUF_LEN];
 
 /*
 ******************************************************************************
-* LOCAL FUNCTION PROTOTYPES
-******************************************************************************
-*/
-
-static inline void st25r3911CheckFieldSetLED(uint8_t val)
-{
-    if (ST25R3911_REG_OP_CONTROL_tx_en & val)
-    {
-#ifdef PLATFORM_LED_FIELD_PIN
-        platformLedOn( PLATFORM_LED_FIELD_PORT, PLATFORM_LED_FIELD_PIN );
-    }
-    else
-    {
-        platformLedOff( PLATFORM_LED_FIELD_PORT, PLATFORM_LED_FIELD_PIN );
-#endif /* PLATFORM_LED_FIELD_PIN */
-    }
-}
-
-
-/*
-******************************************************************************
 * GLOBAL FUNCTIONS
 ******************************************************************************
 */
@@ -212,11 +191,6 @@ void st25r3911WriteRegister(uint8_t reg, uint8_t val)
     uint8_t buf[2];
 #endif  /* ST25R391X_COM_SINGLETXRX */
   
-    if (ST25R3911_REG_OP_CONTROL == reg)
-    {
-        st25r3911CheckFieldSetLED(val);
-    }    
-    
     platformProtectST25R391xComm();
     platformSpiSelect();
 
@@ -298,11 +272,6 @@ void st25r3911WriteMultipleRegisters(uint8_t reg, const uint8_t* values, uint8_t
     uint8_t cmd = (reg | ST25R3911_WRITE_MODE);
 #endif  /* !ST25R391X_COM_SINGLETXRX */
 
-    if (reg <= ST25R3911_REG_OP_CONTROL && reg+length >= ST25R3911_REG_OP_CONTROL)
-    {
-        st25r3911CheckFieldSetLED(values[ST25R3911_REG_OP_CONTROL-reg]);
-    }
-    
     if (length > 0)
     {
         /* make this operation atomic */
@@ -398,13 +367,6 @@ void st25r3911ReadFifo(uint8_t* buf, uint8_t length)
 
 void st25r3911ExecuteCommand(uint8_t cmd)
 {
-#ifdef PLATFORM_LED_FIELD_PIN
-    if ( cmd >= ST25R3911_CMD_TRANSMIT_WITH_CRC && cmd <= ST25R3911_CMD_RESPONSE_RF_COLLISION_0)
-    {
-        platformLedOff(PLATFORM_LED_FIELD_PORT, PLATFORM_LED_FIELD_PIN);
-    }
-#endif /* PLATFORM_LED_FIELD_PIN */
-    
     cmd |= ST25R3911_CMD_MODE;
 
     platformProtectST25R391xComm();

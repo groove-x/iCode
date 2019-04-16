@@ -57,7 +57,7 @@
  ******************************************************************************
  */
 /* ST25R3911XX is connected with Linux host's SPI port /dev/spidev0.0 */
-static const char *device = "/dev/spidev0.0";
+static const char *device = "/dev/spidev3.0";
 static int fd = 0;
 static int isSPIInit = 0;
 /* Lock to serialize SPI communication */

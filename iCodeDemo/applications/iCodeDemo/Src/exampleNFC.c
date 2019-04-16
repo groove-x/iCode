@@ -233,12 +233,7 @@ extern void exampleRfalPollerRun( void )
 
 	    rfalWorker();                                                                 /* Execute RFAL process */
 
-	    /* switchoff all the leds at start */
-	    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);                        /* Added by MB to switch LED off */
-
-        platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
-		platformDelay(20);
+      platformDelay(20);
 
 	    switch( gState )
 	    {
@@ -283,22 +278,18 @@ extern void exampleRfalPollerRun( void )
 	                {
 	                    case EXAMPLE_RFAL_POLLER_TYPE_NFCA:
 	                        platformLog( " NFC-A device UID: %s \r\n", hex2str(gDevList[i].dev.nfca.nfcId1, gDevList[i].dev.nfca.nfcId1Len) );
-                            platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
 	                        break;
 	                        
 	                    case EXAMPLE_RFAL_POLLER_TYPE_NFCB:
 	                        platformLog( " NFC-B device UID: %s \r\n", hex2str(gDevList[i].dev.nfcb.sensbRes.nfcid0, RFAL_NFCB_NFCID0_LEN) );
-                            platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
                             break;
                             
 	                    case EXAMPLE_RFAL_POLLER_TYPE_NFCF:
 	                        platformLog( " NFC-F device UID: %s \r\n", hex2str(gDevList[i].dev.nfcf.sensfRes.NFCID2, RFAL_NFCF_NFCID2_LEN) );
-                            platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
                             break;
                             
 	                    case EXAMPLE_RFAL_POLLER_TYPE_NFCV:
 	                        platformLog( " NFC-V device UID: %s \r\n", hex2str(gDevList[i].dev.nfcv.InvRes.UID, RFAL_NFCV_UID_LEN) );
-                            platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
                             break;
 	                }
 	            }
@@ -1070,11 +1061,7 @@ extern void exampleNFCDetection( void )
 	    rfalWorker();                                                                 /* Execute RFAL process */
 
 	    /* switchoff all the leds at start */
-	    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);                        /* Added by MB to switch LED off */
-
-        platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
-		platformDelay(20);
+      platformDelay(20);
 
 	    switch( gState )
 	    {
@@ -1133,7 +1120,6 @@ extern void exampleNFCDetection( void )
 	                        platformLog( " NFC-V device UID: %s \r\n", hex2str(gDevList[i].dev.nfcv.InvRes.UID, RFAL_NFCV_UID_LEN) );
                             break;
 	                }
-                    platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);               /* Switch on LED to indicate card identified */
 
 	            }
 	            gState = EXAMPLE_RFAL_POLLER_STATE_ACTIVATION;                        /* Device(s) have been identified, go to Activation */
@@ -1145,13 +1131,9 @@ extern void exampleNFCDetection( void )
 	        case EXAMPLE_RFAL_POLLER_STATE_DEACTIVATION:
           
 	            rfalFieldOff();                                                       /* Turn the Field Off powering down any device nearby */
-                platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
 	            platformDelay(2);                                                     /* Remain a certain period with field off */
 	            gState = EXAMPLE_RFAL_POLLER_STATE_INIT;                              /* Restart the loop */
 
-                platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
-                            
                 platformLogClear();
                 platformLog2Screen(logBuffer);
 
@@ -1234,16 +1216,12 @@ static void scanforNFCType(exampleRfalPollerDevType device_type)
     rfalAnalogConfigInitialize();                                                     /* Initialize RFAL's Analog Configs */
     rfalInitialize();                                                                 /* Initialize RFAL */
 
-    /* switchoff all the leds at start */
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);                        /* Added by MB to switch LED off */
-   
 	do
 	{
 	    rfalWorker();                                                                 /* Execute RFAL process */
 
 
-        platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-		platformDelay(20);
+      platformDelay(20);
 
 	    switch( gState )
 	    {
@@ -1305,7 +1283,6 @@ static void scanforNFCType(exampleRfalPollerDevType device_type)
                                 platformLog( " NFC-V device UID: %s \r\n", hex2str(gDevList[i].dev.nfcv.InvRes.UID, RFAL_NFCV_UID_LEN) );
                                 break;
                         }
-                        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);               /* Switch on LED to indicate card identified */
                         platformDelay(20);
 
 
@@ -1323,12 +1300,10 @@ static void scanforNFCType(exampleRfalPollerDevType device_type)
 	        case EXAMPLE_RFAL_POLLER_STATE_DEACTIVATION:
           
 	            rfalFieldOff();                                                       /* Turn the Field Off powering down any device nearby */
-                platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
 
 	            platformDelay(2);                                                     /* Remain a certain period with field off */
 	            gState = EXAMPLE_RFAL_POLLER_STATE_INIT;                              /* Restart the loop */
 
-                platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
                 if (tag_found == true)
                     finished = true;
                     
@@ -1371,11 +1346,7 @@ static void readNFCMemory(exampleRfalPollerDevType device_type)
 
 	    rfalWorker();                                                                 /* Execute RFAL process */
 
-	    /* switchoff all the leds at start */
-	    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);                        /* Added by MB to switch LED off */
-
-        platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-		platformDelay(20);
+      platformDelay(20);
 
 	    switch( gState )
 	    {
@@ -1436,10 +1407,6 @@ static void readNFCMemory(exampleRfalPollerDevType device_type)
                                 platformLog( " NFC-V device UID: %s \r\n", hex2str(gDevList[i].dev.nfcv.InvRes.UID, RFAL_NFCV_UID_LEN) );
                                 break;
                         }
-                        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);               /* Switch on LED to indicate card identified */
-                        platformDelay(20);
-                        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);               /* Switch on LED to indicate card identified */
-                        platformDelay(20);
                         position = i;
                     }
 
@@ -1488,12 +1455,7 @@ static void readNFCMemory(exampleRfalPollerDevType device_type)
 	        case EXAMPLE_RFAL_POLLER_STATE_DEACTIVATION:
 
 	            rfalFieldOff();                                                       /* Turn the Field Off powering down any device nearby */
-                platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
-	            platformDelay(2);                                                     /* Remain a certain period with field off */
 	            gState = EXAMPLE_RFAL_POLLER_STATE_INIT;                              /* Restart the loop */
-
-                platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
 
                 if (memory_read == true)
                     finished = true;
@@ -1544,9 +1506,6 @@ static void readNFCVSingleBlock(void)
     /* Initialisation */
     printf("Initialising the chip for NFC V tags\n");
 
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
-    platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
     rfalAnalogConfigInitialize();                                          /* Initialize RFAL's Analog Configs */
     rfalInitialize();                                                      /* Initialize RFAL */
 
@@ -1554,8 +1513,6 @@ static void readNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Initialize:%s\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
         return;
     }
     rfalFieldOnAndStartGT();                                               /* Turns the Field on if not already and start GT Timer */
@@ -1577,8 +1534,6 @@ static void readNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to complete collision resolution:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
@@ -1600,8 +1555,6 @@ static void readNFCVSingleBlock(void)
         {
             /* No devices found during collision resolution */
             printf("Communication with tag lost during Collision Resolution, memory read aborted\n");
-            platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-            platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
             return;
         }          
     }
@@ -1612,14 +1565,7 @@ static void readNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to complete tag Selection Selection with the following error code:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
-    }
-    else
-    {
-        /* Tunr onthe LED as tag selected */
-        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
     }
     
     /* Read Single Block */
@@ -1627,8 +1573,6 @@ static void readNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Read block of data for the tag:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
@@ -1643,9 +1587,6 @@ static void readNFCVSingleBlock(void)
             printf("\n");
         }
     }
-
-    platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
 }
 
 
@@ -1679,9 +1620,6 @@ static void writeNFCVSingleBlock(void)
     /* Initialisation */
     printf("Initialising the chip for NFC V tags\n");
 
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
-    platformLedOn(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
     rfalAnalogConfigInitialize();                                          /* Initialize RFAL's Analog Configs */
     rfalInitialize();                                                      /* Initialize RFAL */
 
@@ -1692,8 +1630,6 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Initialize:%s\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-
         return;
     }
     rfalFieldOnAndStartGT();                                               /* Turns the Field on if not already and start GT Timer */
@@ -1716,8 +1652,6 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to complete collision resolution:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
@@ -1741,8 +1675,6 @@ static void writeNFCVSingleBlock(void)
         {
             /* No devices found during collision resolution */
             printf("Communication with tag lost during Collision Resolution, memory read aborted\n");
-            platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-            platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
             return;
         }          
     }
@@ -1753,14 +1685,7 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to complete tag Selection Selection with the following error code:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
-    }
-    else
-    {
-        /* Tunr onthe LED as tag selected */
-        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
     }
 
     /* Read Single Block beforehand*/
@@ -1768,8 +1693,6 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Read block of data for the tag:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
@@ -1805,21 +1728,11 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Write to block 0 for the tag:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
     {
         printf("Data Written successfully\n");
-        /* Flash the LED */
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
-        platformDelay(200);
-        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
-        platformDelay(200);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
-        platformDelay(200);
-        platformLedOn(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
     }    
 
     /* Read Single Block afterwards*/
@@ -1827,8 +1740,6 @@ static void writeNFCVSingleBlock(void)
     if (ret != ERR_NONE)
     {
         printf("Failed to Read block of data for the tag:%d\n", ret);
-        platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-        platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
         return;
     }
     else
@@ -1843,8 +1754,6 @@ static void writeNFCVSingleBlock(void)
             printf("\n");
         }
     }
-    platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN);
 }
 
 
@@ -1887,12 +1796,9 @@ static void writeNFCVSingleBlock(void)
         
 	/* Initialize interrupt mechanism */
 	resp = interrupt_init();
-	if (resp != ERR_NONE)
+	if (resp != ERR_NONE) {
 		return false;
-
-    /* Force both LEDs off at the beginning */
-    platformLedOff(PLATFORM_LED_FIELD_PORT,PLATFORM_LED_FIELD_PIN);
-    platformLedOff(LED_TAG_READ_PORT, LED_TAG_READ_PIN); 
+  }
 
     return true;
     }

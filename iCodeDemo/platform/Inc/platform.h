@@ -129,10 +129,6 @@
 #define platformGpioIsHigh(port, pin)         (gpio_readpin(port, pin) == GPIO_PIN_SET)                                                     /*!< Checks if the given GPIO is High */
 #define platformGpioIsLow(port, pin)          (!platformGpioIsHigh(port, pin))                                                              /*!< Checks if the given GPIO is Low  */
 
-#define platformLedsInitialize()                                                /*!< Initializes the pins used as LEDs to outputs*/
-#define platformLedOff(port, pin)             platformGpioClear(port, pin)      /*!< Turns the given LED Off */ /* Support for old board version MB1325-A */
-#define platformLedOn(port, pin)              platformGpioSet(port, pin)        /*!< Turns the given LED On  */ /* Support for old board version MB1325-A */
-
 #define platformTimerCreate(t)                timerCalculateTimer(t)    /*!< Create a timer with the given time (ms)     */
 #define platformTimerIsExpired(timer)         timerIsExpired(timer)     /*!< Checks if the given timer is expired        */
 #define platformDelay(t)                      timerDelay(t)             /*!< Performs a delay for the given time (ms)    */
