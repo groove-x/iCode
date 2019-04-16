@@ -113,6 +113,7 @@ void st25r3911CheckForReceivedInterrupts( void )
    while( platformGpioIsHigh( ST25R391X_INT_PORT, ST25R391X_INT_PIN ) )
    {
        st25r3911ReadMultipleRegisters(ST25R3911_REG_IRQ_MAIN, iregs, sizeof(iregs));
+       
        irqStatus  = (uint32_t)iregs[0];
        irqStatus |= (uint32_t)iregs[1]<<8;
        irqStatus |= (uint32_t)iregs[2]<<16;

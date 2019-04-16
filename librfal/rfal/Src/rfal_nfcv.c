@@ -42,6 +42,9 @@
  * INCLUDES
  ******************************************************************************
  */
+
+#include <stdio.h>
+ 
 #include "rfal_nfcv.h"
 #include "utils.h"
 
@@ -215,7 +218,7 @@ ReturnCode rfalNfcvPollerInitialize( void )
 ReturnCode rfalNfcvPollerCheckPresence( rfalNfcvInventoryRes *invRes )
 {
     ReturnCode ret;
-    
+    //printf("DEBUG: In Nfcv Poller Check Presence\n");
     /* INVENTORY_REQ with 1 slot and no Mask   Activity 2.0 (Candidate) 9.2.3.32 */
     ret = rfalNfcvPollerInventory( RFAL_NFCV_NUM_SLOTS_1, 0, NULL, invRes, NULL );
     
@@ -224,7 +227,7 @@ ReturnCode rfalNfcvPollerCheckPresence( rfalNfcvInventoryRes *invRes )
     {
         ret = ERR_NONE;
     }
-    
+    //printf("DEBUG: About to return from Poller Check Presence with error:%D\n", ret);
     return ret;
 }
 
@@ -234,19 +237,21 @@ ReturnCode rfalNfcvPollerInventory( rfalNfcvNumSlots nSlots, uint8_t maskLen, ui
     ReturnCode           ret;
     rfalNfcvInventoryReq invReq;
     uint16_t             rxLen;
-    
+
     if( ((maskVal == NULL) && (maskLen != 0)) || (invRes == NULL) )
     {
         return ERR_PARAM;
     }
-    
+
+    //printf("DEBUG: In Nfcv Poller Inventory\n");
     invReq.INV_FLAG = (RFAL_NFCV_INV_REQ_FLAG | nSlots);
     invReq.CMD      = RFAL_NFCF_CMD_INVENTORY;
     invReq.MASK_LEN = MIN( maskLen, ((nSlots == RFAL_NFCV_NUM_SLOTS_1) ? RFAL_NFCV_MASKVAL_MAX_1SLOT_LEN : RFAL_NFCV_MASKVAL_MAX_16SLOT_LEN) );   /* Digital 2.0  9.6.1.6 */
     ST_MEMCPY( invReq.MASK_VALUE, maskVal, rfalConvBitsToBytes(invReq.MASK_LEN) );
     
     ret = rfalISO15693TransceiveAnticollisionFrame( (uint8_t*)&invReq, (RFAL_NFCV_INV_REQ_HEADER_LEN + rfalConvBitsToBytes(invReq.MASK_LEN)), (uint8_t*)invRes, sizeof(rfalNfcvInventoryRes), &rxLen );
-    
+
+    //printf("DEBUG: In Nfcv Poller Inventory after ISO15693 Transceive:%d\n", ret);
     /* Check for optional output parameter */
     if( rcvdLen != NULL )
     {
@@ -260,7 +265,7 @@ ReturnCode rfalNfcvPollerInventory( rfalNfcvNumSlots nSlots, uint8_t maskLen, ui
             return ERR_PROTO;
         }
     }
-    
+    //printf("DEBUG: ABout to return from Nfcv Poller Inventory with error:%d\n", ret);
     return ret;
 }
 
@@ -418,7 +423,9 @@ ReturnCode rfalNfvPollerSleep( uint8_t flags, uint8_t* uid )
 }
 
 /*******************************************************************************/
-ReturnCode rfalNfvSelect( uint8_t flags, uint8_t* uid )
+
+// MB 20-10-18: Added 'Poller' into the name below
+ReturnCode rfalNfvPollerSelect( uint8_t flags, uint8_t* uid )
 {
     uint16_t           rcvLen;
     ReturnCode         ret;
@@ -457,7 +464,7 @@ ReturnCode rfalNfvSelect( uint8_t flags, uint8_t* uid )
 }
 
 /*******************************************************************************/
-ReturnCode rfalNfvReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen )
+ReturnCode rfalNfvPollerReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen )
 {
     ReturnCode         ret;
     rfalNfcvGenericReq req;
@@ -466,7 +473,7 @@ ReturnCode rfalNfvReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum
     
     msgIt = 0;
     res   = (rfalNfcvGenericRes*)rxBuf;
-    
+
     /* Compute Request Command */
     req.REQ_FLAG  = (flags & (~RFAL_NFCV_REQ_FLAG_ADDRESS & ~RFAL_NFCV_REQ_FLAG_SELECT));
     req.CMD       = RFAL_NFCF_CMD_READ_SINGLE_BLOCK;
@@ -508,7 +515,7 @@ ReturnCode rfalNfvReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum
 }
 
 /*******************************************************************************/
-ReturnCode rfalNfvWriteSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum, uint8_t* wrData, uint8_t blockLen )
+ReturnCode rfalNfvPollerWriteSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum, uint8_t* wrData, uint8_t blockLen )
 {
     ReturnCode         ret;
     uint16_t           rcvLen;

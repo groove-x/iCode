@@ -25,4 +25,5 @@ add_executable(nfc_writer
 link_directories(../librfal/build)
 
 target_link_libraries(nfc_writer
-  rfal)
+  rfal
+  pthread)
