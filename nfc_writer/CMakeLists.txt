@@ -11,18 +11,16 @@ endif()
 link_directories(../librfal/build/)
 
 include_directories(
-  common/utils/Inc
-  platform/Inc
-  ../librfal/rfal/Inc
-  ../librfal/rfal/Src/st25r3911
+  ../utils/Inc
+  ../platform/Inc
+  ../rfal/Inc
+  ../rfal/Src/st25r3911
   nfc_writer/Inc)
 
 
 add_executable(nfc_writer
   nfc_writer/Src/main.c
   nfc_writer/Src/logger.c)
-
-link_directories(../librfal/build)
 
 target_link_libraries(nfc_writer
   rfal
