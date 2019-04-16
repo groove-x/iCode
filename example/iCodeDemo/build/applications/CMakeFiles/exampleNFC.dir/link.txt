@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/exampleNFC.dir/iCodeDemo/Src/exampleNFC.c.o CMakeFiles/exampleNFC.dir/iCodeDemo/Src/logger.c.o  -o exampleNFC  -L/home/hiro/git/github.com/groove-x/iCode/example/iCodeDemo/applications/../build/rfal -Wl,-rpath,/home/hiro/git/github.com/groove-x/iCode/example/iCodeDemo/applications/../build/rfal -rdynamic ../rfal/librfal_lib.a -lpthread -lrt 
