@@ -65,31 +65,6 @@ ReturnCode find_device(rfalNfcvListenDevice *devices, uint8_t *size) {
   return ret;
 }
 
-ReturnCode read_blocks_by_uid(uint8_t *uid, uint8_t *buff, uint16_t *read_size) {
-  ReturnCode ret = ERR_NONE;
-
-  ret = rfalNfvPollerSelect(RFAL_NFCV_REQ_FLAG_DEFAULT, uid);
-  if (ret != ERR_NONE) {
-    printf("failed to select tag: %d\n", ret);
-    return ret;
-  }
-
-  uint16_t total = 0;
-  for (int j = 0; j < READ_BLOCKS; j++) {
-    uint16_t size = 0;
-    ret = rfalNfvPollerReadSingleBlock(
-        RFAL_NFCV_REQ_FLAG_DEFAULT, uid, j, buff + total, READ_SIZE - total, &size);
-    total += size;
-    if (ret != ERR_NONE) {
-      break;
-    }
-  }
-  *read_size = total;
-
-  return ERR_NONE;
-}
-
-
 void readNFCVSingleBlock(void) {
   ReturnCode ret;
   rfalNfcvListenDevice nfcvDevList[DEV_LIMIT];
@@ -102,18 +77,32 @@ void readNFCVSingleBlock(void) {
 
   for (int i = 0; i < devCnt; i++) {
     uint8_t *uid = nfcvDevList[i].InvRes.UID;
+
+    ret = rfalNfvPollerSelect(RFAL_NFCV_REQ_FLAG_DEFAULT, uid);
+    if (ret != ERR_NONE) {
+      printf("failed to select tag: %d\n", ret);
+      return;
+    }
+
+    // read data
     uint8_t buff[READ_SIZE] = {0x00};
     uint16_t size = 0;
-
-    if (read_blocks_by_uid(uid, buff, &size) != ERR_NONE) {
+    ret = rfalNfvReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, 0, READ_BLOCKS, buff, READ_SIZE, &size);
+    if (ret != ERR_NONE) {
+      printf("failed to read blocks: %d\n", ret);
       continue;
     }
 
-    printf("DATA:");
-    for (int j = 1; j < READ_SIZE; j++) {
-      printf("%02x", *(buff + j));
+    printf("DATA: ");
+    for (int j = 0; j < READ_SIZE; j++) {
+      if (j >= size) {
+        printf("00 ", 0x00);
+      } else {
+        printf("%02x ", *(buff + j));
+      }
     }
-    printf("\n");
+    printf("  LENGTH: %d\n", size);
+    usleep(1000*1000);
   }
 
   if (rfalFieldOff() != ERR_NONE) {

@@ -319,6 +319,8 @@ ReturnCode rfalNfvPollerSelect( uint8_t flags, uint8_t* uid );
  */
 ReturnCode rfalNfvPollerReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t blockNum, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen );
 
+ReturnCode rfalNfvReadMultipleBlocks( uint8_t flags, uint8_t* uid, uint8_t firstBlockNum, uint8_t numOfBlocks, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen );
+
 /*! 
  *****************************************************************************
  * \brief  NFC-V Poller Write Single Block
