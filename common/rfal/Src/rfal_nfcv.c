@@ -484,14 +484,14 @@ ReturnCode rfalNfvPollerReadSingleBlock( uint8_t flags, uint8_t* uid, uint8_t bl
         req.REQ_FLAG |= RFAL_NFCV_REQ_FLAG_ADDRESS;
         ST_MEMCPY( req.payload.UID, uid, RFAL_NFCV_UID_LEN );
         msgIt += RFAL_NFCV_UID_LEN;
-        req.payload.data[ (RFAL_NFCV_UID_LEN + msgIt++) ] = blockNum;
+        req.payload.data[msgIt++] = blockNum;
     }
     else
     {
         req.REQ_FLAG |= RFAL_NFCV_REQ_FLAG_SELECT;
         req.payload.data[msgIt++] = blockNum;
     }
-    
+
     /* Transceive Command */
     ret = rfalTransceiveBlockingTxRx( (uint8_t*)&req, (RFAL_CMD_LEN + RFAL_NFCV_FLAG_LEN + msgIt), rxBuf, rxBufLen, rcvLen, RFAL_TXRX_FLAGS_DEFAULT, RFAL_FDT_POLL_MAX );
     if( ret != ERR_NONE )

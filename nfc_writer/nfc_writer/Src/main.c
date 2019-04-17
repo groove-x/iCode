@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "rfal_analogConfig.h"
 #include "rfal_nfcv.h"
@@ -87,44 +88,19 @@ void start(void) {
     return;
   }
 
-  // write data
-  uint8_t writeBuf[DATA_SIZE] = {0x00};
-  for (int j = 0; j < DATA_SIZE; j++) {
-    writeBuf[j] = (uint8_t)j;
-  }
+  // write data to selected tag
+  uint8_t writeBuf[DATA_SIZE] = {
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,0x0B, 0x0C,0x0D, 0x0E, 0x0F, 0x10 
+  };
   uint16_t total = 0;
   for (int j = 0; j < BLOCK_LENGTH; j++) {
-    ret = rfalNfvPollerWriteSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, j, writeBuf+total, BLOCK_SIZE);
+    ret = rfalNfvPollerWriteSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, j, writeBuf+total, BLOCK_SIZE);
     if (ret != ERR_NONE) {
       printf("failed to write data: result %d\n", ret, j);
       return;
     }
     total += BLOCK_SIZE;
   }
-
-  // read data
-  uint8_t readBuf[DATA_SIZE] = {0x00};
-  uint16_t size = 0;
-  ret = rfalNfvPollerReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, 0, BLOCK_LENGTH, readBuf, DATA_SIZE, &size);
-  if (ret != ERR_NONE) {
-    printf("failed to read blocks: %d\n", ret);
-    return;
-  }
-
-  // print info
-  printf("UID: ");
-  for (int j = 0; j < 8; j++) {
-    printf("%02x", *(uid + j));
-  }
-  printf("  DATA: ");
-  for (int j = 0; j < DATA_SIZE; j++) {
-    if (j >= size) {
-      printf("00 ", 0x00);
-    } else {
-      printf("%02x ", *(readBuf + j));
-    }
-  }
-  printf("  LENGTH: %d\n", size);
 
   if (rfalFieldOff() != ERR_NONE) {
     printf("failed to stop\n");

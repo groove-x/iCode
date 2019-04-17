@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "rfal_analogConfig.h"
 #include "rfal_nfcv.h"
@@ -75,8 +76,9 @@ void start(void) {
   }
 
   for (int i = 0; i < devCnt; i++) {
-    // select tag
     uint8_t *uid = nfcvDevList[i].InvRes.UID;
+
+    // select tag
     ret = rfalNfvPollerSelect(RFAL_NFCV_REQ_FLAG_DEFAULT, uid);
     if (ret != ERR_NONE) {
       printf("failed to select tag: %d\n", ret);
@@ -85,11 +87,16 @@ void start(void) {
 
     // read selected tag data
     uint8_t buff[DATA_SIZE] = {0x00};
-    uint16_t size = 0;
-    ret = rfalNfvPollerReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, 0, BLOCK_LENGTH, buff, DATA_SIZE, &size);
-    if (ret != ERR_NONE) {
-      printf("failed to read blocks: %d\n", ret);
-      continue;
+    uint16_t size = 0, total = 0;
+    for (int j = 0; j < BLOCK_LENGTH; j++) {
+      uint8_t tmpbuf[32] = {0x00};
+      ret = rfalNfvPollerReadSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, j, tmpbuf, 32, &size);
+      if (ret != ERR_NONE) {
+        printf("failed to read block: %d\n", ret);
+        continue;
+      }
+      memcpy(buff+total, tmpbuf, size);
+      total += size;
     }
 
     // print info
@@ -105,7 +112,7 @@ void start(void) {
         printf("%02x ", *(buff + j));
       }
     }
-    printf("  LENGTH: %d\n", size);
+    printf("  LENGTH: %d\n", total);
   }
 
   if (rfalFieldOff() != ERR_NONE) {
