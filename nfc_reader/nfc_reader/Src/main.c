@@ -66,6 +66,7 @@ void start(void) {
   uint8_t devCnt = 0;
 
   ret = rfalFieldOnAndStartGT();
+
   if (ret != ERR_NONE) {
     printf("failed to start\n");
     return;
@@ -86,33 +87,26 @@ void start(void) {
     }
 
     // read selected tag data
-    uint8_t buff[DATA_SIZE] = {0x00};
-    uint16_t size = 0, total = 0;
-    for (int j = 0; j < BLOCK_LENGTH; j++) {
-      uint8_t tmpbuf[32] = {0x00};
-      ret = rfalNfvPollerReadSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, j, tmpbuf, 32, &size);
-      if (ret != ERR_NONE) {
-        printf("failed to read block: %d\n", ret);
-        continue;
-      }
-      memcpy(buff+total, tmpbuf, size);
-      total += size;
-    }
+    uint8_t buff[64] = {0x00};
+    uint16_t size = 0;
+    ret = rfalNfvPollerReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, 0, 5, buff, 64, &size);
 
     // print info
     printf("UID: ");
     for (int j = 0; j < 8; j++) {
       printf("%02x", *(uid + j));
     }
+
+    // offset header
     printf("  DATA: ");
-    for (int j = 0; j < DATA_SIZE; j++) {
+    for (int j = 1; j < DATA_SIZE+1; j++) {
       if (j >= size) {
         printf("00 ", 0x00);
       } else {
         printf("%02x ", *(buff + j));
       }
     }
-    printf("  LENGTH: %d\n", total);
+    printf("\n");
   }
 
   if (rfalFieldOff() != ERR_NONE) {

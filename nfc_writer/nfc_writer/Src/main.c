@@ -89,17 +89,17 @@ void start(void) {
   }
 
   // write data to selected tag
-  uint8_t writeBuf[DATA_SIZE] = {
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,0x0B, 0x0C,0x0D, 0x0E, 0x0F, 0x10 
-  };
   uint16_t total = 0;
   for (int j = 0; j < BLOCK_LENGTH; j++) {
-    ret = rfalNfvPollerWriteSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, j, writeBuf+total, BLOCK_SIZE);
-    if (ret != ERR_NONE) {
-      printf("failed to write data: result %d\n", ret, j);
-      return;
-    }
-    total += BLOCK_SIZE;
+    uint8_t writeBuf[BLOCK_SIZE] = {j, j+1, j+2, j+3};
+    do {
+      ret = rfalNfvPollerWriteSingleBlock(RFAL_NFCV_REQ_FLAG_DEFAULT, NULL, j, writeBuf, BLOCK_SIZE);
+      if (ret != ERR_NONE) {
+        usleep(100*1000);
+        continue;
+      }
+      total += BLOCK_SIZE;
+    } while(ret == ERR_NONE);
   }
 
   if (rfalFieldOff() != ERR_NONE) {
