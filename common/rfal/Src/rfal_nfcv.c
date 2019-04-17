@@ -576,7 +576,7 @@ ReturnCode rfalNfvPollerWriteSingleBlock( uint8_t flags, uint8_t* uid, uint8_t b
 }
 
 /*******************************************************************************/
-ReturnCode rfalNfvReadMultipleBlocks( uint8_t flags, uint8_t* uid, uint8_t firstBlockNum, uint8_t numOfBlocks, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen )
+ReturnCode rfalNfvPollerReadMultipleBlocks( uint8_t flags, uint8_t* uid, uint8_t firstBlockNum, uint8_t numOfBlocks, uint8_t* rxBuf, uint16_t rxBufLen, uint16_t *rcvLen )
 {
     ReturnCode          ret;
     rfalNfcvGenericReq  req;

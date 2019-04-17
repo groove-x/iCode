@@ -4,12 +4,12 @@ project(nfc_writer)
 
 include(../common.cmake)
 
-include_directories(LIBRFAL_INC
-  nfc_writer/Inc)
+set(CMAKE_C_FLAGS="-Wall")
+
+include_directories(LIBRFAL_INC)
 
 add_executable(nfc_writer
-  nfc_writer/Src/main.c
-  nfc_writer/Src/logger.c)
+  nfc_writer/Src/main.c)
 
 target_link_libraries(nfc_writer
   rfal

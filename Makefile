@@ -1,10 +1,13 @@
-all:librfal nfc_writer
+PROJECTS:=librfal nfc_reader nfc_writer
 
-PROJECTS:=librfal nfc_writer
+all:${PROJECTS}
 
-.PHONY:librfal nfc_writer
+.PHONY:librfal nfc_reader nfc_writer
 librfal:
 	make -C librfal
+
+nfc_reader:
+	make -C nfc_reader
 
 nfc_writer:
 	make -C nfc_writer

@@ -6,12 +6,12 @@
 #include "rfal_nfcv.h"
 
 #define DEV_LIMIT 10
-#define READ_BLOCKS 4
-#define BLOCK_SIZE 5
-#define READ_SIZE (READ_BLOCKS*BLOCK_SIZE)
+#define BLOCK_LENGTH 4
+#define BLOCK_SIZE 4
+#define DATA_SIZE (BLOCK_LENGTH*BLOCK_SIZE)
 
 static bool initialize(void);
-static void readNFCVSingleBlock(void);
+static void start(void);
 
 bool initialize(void) {
   if (gpio_init() != ERR_NONE) {
@@ -39,12 +39,6 @@ ReturnCode find_device(rfalNfcvListenDevice *devices, uint8_t *size) {
   ReturnCode ret = ERR_NONE;
   rfalNfcvInventoryRes invRes;
 
-  ret = rfalFieldOnAndStartGT();
-  if (ret != ERR_NONE) {
-    printf("failed to start\n");
-    return ret;
-  }
-
   ret = rfalNfcvPollerCheckPresence(&invRes);
   if (ret != ERR_NONE) {
     printf("failed to check presence\n");
@@ -65,36 +59,46 @@ ReturnCode find_device(rfalNfcvListenDevice *devices, uint8_t *size) {
   return ret;
 }
 
-void readNFCVSingleBlock(void) {
+void start(void) {
   ReturnCode ret;
   rfalNfcvListenDevice nfcvDevList[DEV_LIMIT];
   uint8_t devCnt = 0;
-  uint16_t rxBufLen = 32;
+
+  ret = rfalFieldOnAndStartGT();
+  if (ret != ERR_NONE) {
+    printf("failed to start\n");
+    return;
+  }
 
   if (find_device(nfcvDevList, &devCnt) != ERR_NONE) {
     return;
   }
 
   for (int i = 0; i < devCnt; i++) {
+    // select tag
     uint8_t *uid = nfcvDevList[i].InvRes.UID;
-
     ret = rfalNfvPollerSelect(RFAL_NFCV_REQ_FLAG_DEFAULT, uid);
     if (ret != ERR_NONE) {
       printf("failed to select tag: %d\n", ret);
       return;
     }
 
-    // read data
-    uint8_t buff[READ_SIZE] = {0x00};
+    // read selected tag data
+    uint8_t buff[DATA_SIZE] = {0x00};
     uint16_t size = 0;
-    ret = rfalNfvReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, 0, READ_BLOCKS, buff, READ_SIZE, &size);
+    ret = rfalNfvPollerReadMultipleBlocks(RFAL_NFCV_REQ_FLAG_DEFAULT, uid, 0, BLOCK_LENGTH, buff, DATA_SIZE, &size);
     if (ret != ERR_NONE) {
       printf("failed to read blocks: %d\n", ret);
       continue;
     }
 
-    printf("DATA: ");
-    for (int j = 0; j < READ_SIZE; j++) {
+    // print info
+    printf("UID: ");
+    for (int j = 0; j < 8; j++) {
+      printf("%02x", *(uid + j));
+    }
+    printf("  DATA: ");
+    for (int j = 0; j < DATA_SIZE; j++) {
       if (j >= size) {
         printf("00 ", 0x00);
       } else {
@@ -102,7 +106,6 @@ void readNFCVSingleBlock(void) {
       }
     }
     printf("  LENGTH: %d\n", size);
-    usleep(1000*1000);
   }
 
   if (rfalFieldOff() != ERR_NONE) {
@@ -118,8 +121,7 @@ int main(void) {
     return 1;
   }
 
-  // read single block
-  readNFCVSingleBlock();
+  start();
 
   return 0;
 }
