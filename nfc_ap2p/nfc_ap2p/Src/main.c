@@ -179,6 +179,7 @@ int main(void) {
   if (err != ERR_NONE) {
     printf("AP2P device not found\n");
   } else {
+    printf("detected AP2P device\n");
     sendNdefUri();
   }
 
