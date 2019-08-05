@@ -52,7 +52,7 @@
  */ 
 //#define PLTF_GPIO_INTR_PIN	7
 // CHanged to GPIO 22, pin 13 to suit Bostin Tech board.
-#define PLTF_GPIO_INTR_PIN	504
+#define PLTF_GPIO_INTR_PIN	503
 
 /*
  ******************************************************************************
