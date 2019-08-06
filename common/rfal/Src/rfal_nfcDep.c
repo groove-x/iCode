@@ -2137,10 +2137,11 @@ ReturnCode rfalNfcDepInitiatorHandleActivation( rfalNfcDepAtrParam* param, rfalB
          {
              continue;
          }
+         
          break;
     }
     while( (maxRetyrs--) );
-    
+
     if( ERR_NO_MASK(ret) != ERR_NONE )
     {
         return ret;

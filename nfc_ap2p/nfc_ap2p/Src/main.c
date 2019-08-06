@@ -7,16 +7,11 @@
 #include "rfal_nfcDep.h"
 #include "utils.h"
 
-#define DEV_LIMIT 10
-#define BLOCK_LENGTH 4
-#define BLOCK_SIZE 4
-#define DATA_SIZE (BLOCK_LENGTH * BLOCK_SIZE)
+#define BUF_LEN 255
 
 static union {
   rfalNfcDepDevice nfcDepDev; /* NFC-DEP Device details */
 } gDevProto;
-
-#define BUF_LEN 255
 
 static union {
   rfalNfcDepBufFormat nfcDepRxBuf;
@@ -68,27 +63,26 @@ ReturnCode nfcDepBlockingTxRx(rfalNfcDepDevice *nfcDepDev, const uint8_t *txBuf,
   return ERR_NONE;
 }
 
-void sendNdefUri(void) {
+int sendNdefUri(void) {
   uint16_t actLen = 0;
   ReturnCode err = ERR_NONE;
 
   printf("initalize device .. ");
-  static uint8_t ndefInit[] = {0x05, 0x20, 0x06, 0x0F, 0x75, 0x72, 0x6E,
-                               0x3A, 0x6E, 0x66, 0x63, 0x3A, 0x73, 0x6E,
-                               0x3A, 0x73, 0x6E, 0x65, 0x70, 0x02, 0x02,
-                               0x07, 0x80, 0x05, 0x01, 0x02};
+  uint8_t ndefInit[] = {0x05, 0x20, 0x06, 0x0F, 0x75, 0x72, 0x6E, 0x3A, 0x6E,
+                        0x66, 0x63, 0x3A, 0x73, 0x6E, 0x3A, 0x73, 0x6E, 0x65,
+                        0x70, 0x02, 0x02, 0x07, 0x80, 0x05, 0x01, 0x02};
   if (ERR_NONE != nfcDepBlockingTxRx(&gDevProto.nfcDepDev, ndefInit,
                                      sizeof(ndefInit), gRxBuf.rxBuf,
                                      sizeof(gRxBuf.rxBuf), &actLen)) {
     printf("failed.\n");
-    return;
+    return 1;
   } else {
     printf("succeeded.\n");
   }
 
   actLen = 0;
   printf("Push NDEF Uri: www.ST.com .. ");
-  static uint8_t ndefUriSTcom[] = {
+  uint8_t ndefUriSTcom[] = {
       0x13, 0x20, 0x00, 0x10, 0x02, 0x00, 0x00, 0x00, 0x19, 0xc1, 0x01, 0x00,
       0x00, 0x00, 0x12, 0x55, 0x00, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f,
       0x77, 0x77, 0x77, 0x2e, 0x73, 0x74, 0x2e, 0x63, 0x6f, 0x6d};
@@ -96,13 +90,13 @@ void sendNdefUri(void) {
                                      sizeof(ndefUriSTcom), gRxBuf.rxBuf,
                                      sizeof(gRxBuf.rxBuf), &actLen)) {
     printf("failed.\n");
-    return;
+    return 2;
   } else {
     printf("succeeded.\n");
   }
 
   printf("Device present, maintaining connection ");
-  static uint8_t ndefPing[] = {0x00, 0x00};
+  uint8_t ndefPing[] = {0x00, 0x00};
   while (err == ERR_NONE) {
     err = nfcDepBlockingTxRx(&gDevProto.nfcDepDev, ndefPing, sizeof(ndefPing),
                              gRxBuf.rxBuf, sizeof(gRxBuf.rxBuf), &actLen);
@@ -110,36 +104,18 @@ void sendNdefUri(void) {
     platformDelay(50);
   }
   printf("Device removed.\n");
+
+  return 0;
 }
 
-int main(void) {
+void pollAP2P() {
   ReturnCode err;
 
-  // init
-  if (gpio_init() != ERR_NONE) {
-    return 1;
-  }
-  if (spi_init() != ERR_NONE) {
-    return 2;
-  }
-  if (interrupt_init() != ERR_NONE) {
-    return 3;
-  }
-  rfalAnalogConfigInitialize();
-  err = rfalInitialize();
-  if (err != ERR_NONE) {
-    printf("failed to initialize\n");
-    return 4;
-  }
-  rfalNfcDepInitialize();
-  printf("initialize done.\n");
-
-  // set P2P mode
   printf("set AP2P mode\n");
   err = rfalSetMode(RFAL_MODE_POLL_ACTIVE_P2P, RFAL_BR_424, RFAL_BR_424);
   if (err != ERR_NONE) {
     printf("failed to set mode: %d\n", err);
-    return 5;
+    return;
   }
 
   // start GT
@@ -149,13 +125,14 @@ int main(void) {
   rfalSetGT(RFAL_GT_AP2P_ADJUSTED);
   err = rfalFieldOnAndStartGT();
   if (err != ERR_NONE) {
-    printf("failed to startGT\n");
-    return 6;
+    printf("failed to startGT: %d\n", err);
+    return;
   }
 
   // activate P2P
   uint8_t NFCID3[] = {0x01, 0xFE, 0x03, 0x04, 0x05,
                       0x06, 0x07, 0x08, 0x09, 0x0A};
+
   uint8_t GB[] = {0x46, 0x66, 0x6d, 0x01, 0x01, 0x11, 0x02, 0x02, 0x07, 0x80,
                   0x03, 0x02, 0x00, 0x03, 0x04, 0x01, 0x32, 0x07, 0x01, 0x03};
   rfalNfcDepAtrParam nfcDepParams;
@@ -177,10 +154,55 @@ int main(void) {
   err = rfalNfcDepInitiatorHandleActivation(&nfcDepParams, RFAL_BR_424,
                                             &gDevProto.nfcDepDev);
   if (err != ERR_NONE) {
-    printf("AP2P device not found\n");
+    // not detected device
+    printf("NFC Active P2P device not found: %d\n", err);
   } else {
-    printf("detected AP2P device\n");
-    sendNdefUri();
+    // detected device
+    printf("NFC Active P2P device found. NFCID3: ");
+    for (int i = 0; i < RFAL_NFCDEP_NFCID3_LEN; i++) {
+      printf("%02X ", gDevProto.nfcDepDev.activation.Target.ATR_RES.NFCID3[i]);
+    }
+    printf("\n");
+
+    int ret = sendNdefUri();
+    printf("send result: %d\n", ret);
+  }
+  rfalFieldOff();
+}
+
+int main(void) {
+  ReturnCode err;
+
+  // init
+  if (gpio_init() != ERR_NONE) {
+    return 1;
+  }
+  if (spi_init() != ERR_NONE) {
+    return 2;
+  }
+  if (interrupt_init() != ERR_NONE) {
+    return 3;
+  }
+  rfalAnalogConfigInitialize();
+  err = rfalInitialize();
+  if (err != ERR_NONE) {
+    printf("failed to initialize\n");
+    return 4;
+  }
+  printf("initialize done.\n");
+
+  err = rfalFieldOff();
+  if (err != ERR_NONE) {
+    printf("failed to field off: %d\n", err);
+    return 5;
+  }
+
+  rfalWakeUpModeStop();
+
+  // poll active p2p
+  while (1) {
+    pollAP2P();
+    sleep(1);
   }
 
   return 0;
