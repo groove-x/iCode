@@ -197,7 +197,7 @@ void st25r3911WriteRegister(uint8_t reg, uint8_t val)
     buf[0] = reg | ST25R3911_WRITE_MODE;
     buf[1] = val;
     
-    platformSpiTxRx(buf, NULL, 2);
+   platformSpiTxRx(buf, NULL, 2);
     
     platformSpiDeselect();
     platformUnprotectST25R391xComm();

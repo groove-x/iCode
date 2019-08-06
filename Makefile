@@ -1,16 +1,10 @@
-PROJECTS:=librfal nfc_reader nfc_writer
+PROJECTS:=librfal $(wildcard nfc_*)
 
+.PHONY:all ${PROJECTS}
 all:${PROJECTS}
 
-.PHONY:librfal nfc_reader nfc_writer
-librfal:
-	make -C librfal
-
-nfc_reader:
-	make -C nfc_reader
-
-nfc_writer:
-	make -C nfc_writer
+${PROJECTS}:
+	make -C $@
 
 .SILENT:clean
 clean:

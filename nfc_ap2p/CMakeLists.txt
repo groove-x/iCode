@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.2)
 
-project(nfc_ap2p_sender)
+project(nfc_ap2p)
 
 include(../common.cmake)
 
@@ -8,9 +8,9 @@ set(CMAKE_C_FLAGS="-Wall")
 
 include_directories(LIBRFAL_INC)
 
-add_executable(nfc_ap2p_sender
-  nfc_ap2p_sender/Src/main.c)
+add_executable(nfc_ap2p
+  nfc_ap2p/Src/main.c)
 
-target_link_libraries(nfc_ap2p_sender
+target_link_libraries(nfc_ap2p
   rfal
   pthread)
