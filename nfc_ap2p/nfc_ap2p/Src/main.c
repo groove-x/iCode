@@ -55,8 +55,8 @@ ReturnCode nfcDepBlockingTxRx(rfalNfcDepDevice *nfcDepDev, const uint8_t *txBuf,
   rfalNfcDepTxRx.isTxChaining = false;
 
   /* Copy data to send */
-  ST_MEMMOVE(gTxBuf.nfcDepTxBuf.inf, txBuf,
-             MIN(txBufSize, RFAL_NFCDEP_FRAME_SIZE_MAX_LEN));
+  memmove(gTxBuf.nfcDepTxBuf.inf, txBuf,
+          MIN(txBufSize, RFAL_NFCDEP_FRAME_SIZE_MAX_LEN));
 
   /* Perform the NFC-DEP Transceive in a blocking way */
   rfalNfcDepStartTransceive(&rfalNfcDepTxRx);
@@ -142,105 +142,78 @@ ReturnCode activateP2P(uint8_t *nfcid, uint8_t nfidLen, bool isActive,
   rfalNfcDepInitialize();
 
   /* Handle NFC-DEP Activation (ATR_REQ and PSL_REQ if applicable) */
-  return rfalNfcDepInitiatorHandleActivation(&nfcDepParams, RFAL_BR_424, nfcDepDev);
+  return rfalNfcDepInitiatorHandleActivation(&nfcDepParams, RFAL_BR_424,
+                                             nfcDepDev);
 }
 
-void pollAP2P() {
+bool pollAP2P() {
   ReturnCode err;
+  bool try106 = false;
 
-  printf("set AP2P mode\n");
-  err = rfalSetMode(RFAL_MODE_POLL_ACTIVE_P2P, RFAL_BR_424, RFAL_BR_424);
-  if (err != ERR_NONE) {
-    printf("failed to set mode: %d\n", err);
-    return;
-  }
-
-  // start GT
-  rfalSetErrorHandling(RFAL_ERRORHANDLING_NFC);
-  rfalSetFDTListen(RFAL_FDT_LISTEN_AP2P_POLLER);
-  rfalSetFDTPoll(RFAL_TIMING_NONE);
-  rfalSetGT(RFAL_GT_AP2P_ADJUSTED);
-  err = rfalFieldOnAndStartGT();
-  if (err != ERR_NONE) {
-    printf("failed to startGT: %d\n", err);
-    return;
-  }
-
-  // activate P2P
-  err = activateP2P(NFCID3, RFAL_NFCDEP_NFCID3_LEN, true, &gDevProto.nfcDepDev);
-  if (err != ERR_NONE) {
-    // not detected device
-    printf("NFC Active P2P device not found: %d\n", err);
-  } else {
-    // detected device
-    printf("NFC Active P2P device found. NFCID3: ");
-    for (int i = 0; i < RFAL_NFCDEP_NFCID3_LEN; i++) {
-      printf("%02X ", gDevProto.nfcDepDev.activation.Target.ATR_RES.NFCID3[i]);
+  while (!try106) {
+    rfalBitRate txBR = try106 ? RFAL_BR_106 : RFAL_BR_424;
+    rfalBitRate rxBR = try106 ? RFAL_BR_106 : RFAL_BR_424;
+    printf("set AP2P mode. Tx: %d, Rx: %d\n", txBR, rxBR);
+    err = rfalSetMode(RFAL_MODE_POLL_ACTIVE_P2P, txBR, rxBR);
+    if (err != ERR_NONE) {
+      printf("failed to set mode: %d\n", err);
+      return false;
     }
-    printf("\n");
 
-    int ret = sendNdefUri();
-    printf("send result: %d\n", ret);
+    // start GT
+    rfalSetErrorHandling(RFAL_ERRORHANDLING_NFC);
+    rfalSetFDTListen(RFAL_FDT_LISTEN_AP2P_POLLER);
+    rfalSetFDTPoll(RFAL_TIMING_NONE);
+    rfalSetGT(RFAL_GT_AP2P_ADJUSTED);
+    err = rfalFieldOnAndStartGT();
+    if (err != ERR_NONE) {
+      printf("failed to startGT: %d\n", err);
+      return false;
+    }
+
+    // activate P2P
+    err =
+        activateP2P(NFCID3, RFAL_NFCDEP_NFCID3_LEN, true, &gDevProto.nfcDepDev);
+    if (err != ERR_NONE) {
+      // not detected device
+      printf("NFC Active P2P device not found: %d\n", err);
+    } else {
+      // detected device
+      printf("NFC Active P2P device found. NFCID3: ");
+      for (int i = 0; i < RFAL_NFCDEP_NFCID3_LEN; i++) {
+        printf("%02X ",
+               gDevProto.nfcDepDev.activation.Target.ATR_RES.NFCID3[i]);
+      }
+      printf("\n");
+
+      int ret = sendNdefUri();
+      printf("send result: %d\n", ret);
+    }
+    try106 = true;
+    rfalFieldOff();
   }
-  rfalFieldOff();
+
+  return true;
 }
 
-int main(void) {
+bool listen() {
   ReturnCode err;
-
-  // init
-  if (gpio_init() != ERR_NONE) {
-    return 1;
-  }
-  if (spi_init() != ERR_NONE) {
-    return 2;
-  }
-  if (interrupt_init() != ERR_NONE) {
-    return 3;
-  }
-  rfalAnalogConfigInitialize();
-  err = rfalInitialize();
-  if (err != ERR_NONE) {
-    printf("failed to initialize\n");
-    return 4;
-  }
-  printf("initialize done.\n");
-
-  err = rfalFieldOff();
-  if (err != ERR_NONE) {
-    printf("failed to field off: %d\n", err);
-    return 5;
-  }
-
-  rfalWakeUpModeStop();
-  sleep(1);
-
-  rfalWakeUpModeStart(NULL);
-
-  while (!rfalWakeUpModeHasWoke()) {
-    break;
-  }
-  rfalWakeUpModeStop();
-  sleep(1);
-  printf("start\n");
-
-  // poll active p2p
-  pollAP2P();
-  sleep(1);
-
-  // init listen
   rfalFieldOff();
-  int tick = time(NULL);
-  err = rfalListenStart(RFAL_LM_MASK_ACTIVE_P2P, NULL, NULL, NULL, gRxBuf.rxBuf, BUF_LEN, &gRxLen);
+  err = rfalListenStart(RFAL_LM_MASK_ACTIVE_P2P, NULL, NULL, NULL, gRxBuf.rxBuf,
+                        BUF_LEN, &gRxLen);
   if (err != ERR_NONE) {
     printf("failed to listen start: %d\n", err);
-    return 4;
+    return false;
   }
-  printf("listen start done.\n");
 
-  // wait act rf
+  return true;
+}
+
+bool waitActRf(int time_to) {
+  ReturnCode err;
   bool detected = false;
-  while (time(NULL) - tick < 30) {
+
+  while (time_to - time(NULL) < 0) {
     bool dataFlag = false;
     rfalBitRate bitRate;
     rfalLmState lmst = RFAL_LM_STATE_NOT_INIT;
@@ -282,51 +255,56 @@ int main(void) {
         rxParam.isRxChaining = &gIsRxChaining;
         rxParam.nfcDepDev = &gNfcDepDev;
 
-        /* ATR_REQ received, trigger NFC-DEP layer to handle activation (sends ATR_RES and handles PSL_REQ)  */
+        /* ATR_REQ received, trigger NFC-DEP layer to handle activation (sends
+         * ATR_RES and handles PSL_REQ)  */
         err = rfalNfcDepListenStartActivation(
             &param, &gRxBuf.rxBuf[hdrLen],
             (rfalConvBitsToBytes(gRxLen) - hdrLen), rxParam);
         if (err != ERR_NONE) {
           printf("failed to listen start activation: %d\n", err);
-          return 5;
+          return false;
         } else {
           printf("listen start activation done.\n");
-          detected = true;
-          break;
+          return true;
         }
       }
     }
     sleep(1);
   }
-  if (!detected) {
-    return 6;
-  }
+}
 
-  // wait act nfc dep
-  while (1) {
+bool waitActNfcDep() {
+  ReturnCode err;
+  int now = time(NULL);
+  while (time(NULL) - now > 3) {
     err = rfalNfcDepListenGetActivationStatus();
     if (err == ERR_BUSY) {
       printf("device is busy.\n");
     } else if (err != ERR_NONE) {
       printf("failed to get activation status: %d\n", err);
-      return 7;
+      return false;
     } else {
       printf("activation status is ok.\n");
-      break;
+      return true;
     }
     sleep(1);
   }
 
-  // data exchange
-  while (1) {
-    rfalNfcDepTxRxParam rfalNfcDepTxRx;
+  printf("activation timedout\n");
+  return false;
+}
 
+void dataExchange() {
+  ReturnCode err;
+  int now = time(NULL);
+  while (time(NULL) - now) {
+    rfalNfcDepTxRxParam rfalNfcDepTxRx;
     err = rfalNfcDepGetTransceiveStatus();
     if (err == ERR_BUSY) {
       printf("device is busy.\n");
     } else if (err != ERR_NONE) {
       printf("failed to get transceive status: %d\n", err);
-      return 8;
+      return;
     } else {
       printf("transceive status is ok.\n");
       printf("received: ");
@@ -351,11 +329,56 @@ int main(void) {
       err = rfalNfcDepStartTransceive(&rfalNfcDepTxRx);
       if (err != ERR_NONE) {
         printf("failed to start transceive: %d\n", err);
-      } else {
-        break;
+      }
+
+      return;
+    }
+  }
+
+  printf("data exchange timedout\n");
+}
+
+int main(void) {
+  ReturnCode err;
+
+  if (gpio_init() != ERR_NONE) {
+    return 1;
+  }
+  if (spi_init() != ERR_NONE) {
+    return 2;
+  }
+  if (interrupt_init() != ERR_NONE) {
+    return 3;
+  }
+  rfalAnalogConfigInitialize();
+  err = rfalInitialize();
+  if (err != ERR_NONE) {
+    printf("failed to initialize\n");
+    return 4;
+  }
+
+  while (1) {
+    err = rfalFieldOff();
+    if (err != ERR_NONE) {
+      printf("failed to field off: %d\n", err);
+      return 5;
+    }
+
+    rfalWakeUpModeStop();
+    sleep(1);
+
+    pollAP2P();
+
+    if (!listen()) {
+      return 6;
+    }
+
+    int tick = time(NULL);
+    if (waitActRf(tick + 3)) {
+      if (waitActNfcDep()) {
+        dataExchange();
       }
     }
-    sleep(1);
   }
 
   rfalListenStop();
